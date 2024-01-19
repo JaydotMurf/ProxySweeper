@@ -1,41 +1,47 @@
-from bs4 import BeautifulSoup
-from colored import Fore, Back, Style
+from colored import Fore, Back, Style 
 import requests
 import threading
 import queue
 import re
 
-def get_proxies(file_path):
+def read_proxies(file_path):
+    assert file_path, "File path for proxies is not provided"
     with open(file_path) as f:
         proxies = f.read().split('\n')
-        return [p for p in proxies if re.match(r'^\d+\.\d+\.\d+\.\d+:\d+$', p)]
+        valid_proxies = [p for p in proxies if re.match(r'^\d+\.\d+\.\d+\.\d+:\d+$', p)]
+    assert valid_proxies, "No valid proxies found in the file"
+    return valid_proxies
 
-def validate_proxy(proxy, q, valid_proxies, lock):
-    IP_INFO_URL = 'http://ipinfo.io/json'
-    try:
-        res = requests.get(IP_INFO_URL, proxies={'http': proxy, 'https': proxy}, timeout=5)
-        if res.status_code == 200:
-            with lock:
-                valid_proxies.append(proxy)
-    except requests.exceptions.RequestException:
-        pass
-    finally:
+q = queue.Queue()
+valid_proxies = []
+
+proxies = read_proxies('free_proxies.txt')
+for p in proxies:
+    q.put(p)
+
+assert not q.empty(), "Queue is empty after loading proxies"
+
+IP_INFO_URL = 'https://ipinfo.io/json'
+MAX_TRIES = 3  # Maximum number of tries for each proxy
+
+def check_proxies():
+    global q
+    while not q.empty():
+        proxy = q.get()
+        for attempt in range(MAX_TRIES):
+            try:
+                res = requests.get(IP_INFO_URL, proxies={'http': proxy, 'https': proxy})
+                assert res, "Failed to get a response using proxy: " + proxy
+                if res.status_code == 200:
+                    print(f"Valid proxy: {proxy}")
+                    break
+            except Exception as e:
+                if attempt < MAX_TRIES - 1:
+                    continue
+                else:
+                    print(f"Failed proxy {proxy} after {MAX_TRIES} attempts: {e}")
+                    break
         q.task_done()
 
-def main():
-    proxies = get_proxies('free_proxies.txt')
-    q = queue.Queue()
-    valid_proxies = []
-    lock = threading.Lock()
-
-    for proxy in proxies:
-        q.put(proxy)
-
-    for _ in range(min(10, len(proxies))):
-        threading.Thread(target=lambda: validate_proxy(q.get(), q, valid_proxies, lock)).start()
-
-    q.join()
-    print("Valid Proxies:", valid_proxies)
-
-if __name__ == "__main__":
-    main()
+for _ in range(10):
+    threading.Thread(target=check_proxies).start()
