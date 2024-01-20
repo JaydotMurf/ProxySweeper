@@ -9,5 +9,5 @@ def write_proxies_to_file(proxies, file_path):
     assert proxies, "No proxies provided to write to file"
     assert file_path, "No file path provided"
 
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         file.write(proxies)
