@@ -1,11 +1,12 @@
-from colored import Fore
 import queue
 import re
-import requests
 import threading
+
+import requests
+from colored import Fore
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def get_unvalidated_proxies(driver):
@@ -47,9 +48,14 @@ def proxy_validation_worker(q, valid_proxies, lock):
     VALIDATION_URL = "https://ipinfo.io/json"
     while True:
         proxy = q.get()
+        if proxy is None:  # Trip value check
+            q.task_done()
+            break 
+
         try:
             res = requests.get(VALIDATION_URL, proxies={"http": proxy, "https": proxy})
             if res.status_code == 200:
+                print(f"{Fore.GREEN}{proxy}")
                 with lock:
                     valid_proxies.append(proxy)
         except requests.exceptions.RequestException:
@@ -57,7 +63,7 @@ def proxy_validation_worker(q, valid_proxies, lock):
         q.task_done()
 
 
-def validate_proxies(file_path):
+def validate_proxies(file_path, number_of_workers=10):
     assert file_path, "No file path provided"
 
     q = queue.Queue()
@@ -65,24 +71,24 @@ def validate_proxies(file_path):
     lock = threading.Lock()
 
     with open(file_path) as f:
-        proxies = f.read().split("\n")
-        for p in proxies:
-            if re.match(r"^\d+\.\d+\.\d+\.\d+:\d+$", p):  # More accurate regex
-                q.put(p)
+        proxies = [p for p in f.read().split("\n") if p.strip()]
 
-    assert not q.empty(), "File contains no valid IPs"
+    for p in proxies:
+        if re.match(r'^\d+\.\d+\.\d+\.\d+:\d+$', p):
+            q.put(p)
+
+    # Add a trip value for each worker to indicate the end of the queue
+    for _ in range(number_of_workers):
+        q.put(None)
 
     threads = []
-    for _ in range(10):
+    for _ in range(number_of_workers):
         t = threading.Thread(
             target=proxy_validation_worker, args=(q, valid_proxies, lock)
         )
         t.start()
         threads.append(t)
 
-    q.join()  # Wait for the queue to be empty
-
-    # Wait for all threads to complete
     for t in threads:
         t.join()
 

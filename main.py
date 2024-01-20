@@ -1,12 +1,14 @@
-from colored import Fore, Back
+from colored import Back
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException
-from proxy_operations import get_unvalidated_proxies, validate_proxies
+from selenium.webdriver.chrome.options import Options
+
 from file_operations import write_proxies_to_file
+from proxy_operations import get_unvalidated_proxies, validate_proxies
 
 
 def init_webdriver(headless=True):
+    
     """Initializes and returns a Selenium WebDriver."""
     options = Options()
     if headless:
@@ -36,7 +38,7 @@ if __name__ == "__main__":
         proxies = scrape_proxies(driver, FREE_PROXY_LIST_URL)
         write_proxies_to_file(proxies, "proxies.txt")
         valid_proxies = validate_proxies("proxies.txt")
-        print("Valid Proxies:", valid_proxies)
+        write_proxies_to_file(valid_proxies, "valid_proxies.txt")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
