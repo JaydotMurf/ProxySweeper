@@ -1,2 +1,5 @@
 *.ipynb
+*.ipynb_checkpoints
 *.txt
+venv/
+__pycache__
