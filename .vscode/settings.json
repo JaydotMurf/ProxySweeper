@@ -1,3 +1,9 @@
 {
-    "editor.fontSize": 22
+    "editor.fontSize": 22,
+    "files.autoSave": "afterDelay",
+    "editor.fontFamily": "Fira Code, 'Courier New', monospace",
+    "editor.wordWrap": "on",
+    "workbench.colorTheme": "Monokai",
+    "workbench.preferredHighContrastColorTheme": "One Monokai",
+    "workbench.iconTheme": "material-icon-theme"
 }
