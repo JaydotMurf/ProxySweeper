@@ -8,7 +8,6 @@ from proxy_operations import get_unvalidated_proxies, validate_proxies
 
 
 def init_webdriver(headless=True):
-    
     """Initializes and returns a Selenium WebDriver."""
     options = Options()
     if headless:
