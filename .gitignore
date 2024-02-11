@@ -1,5 +1,9 @@
+# Files
 *.ipynb
 *.ipynb_checkpoints
 *.txt
+
+# Folders
 venv/
 __pycache__
+.vscode
