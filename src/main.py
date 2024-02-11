@@ -13,17 +13,17 @@ def init_webdriver(headless=True):
     if headless:
         options.add_argument("--headless")
     try:
-        driver = webdriver.Chrome(options=options)
-        return driver
-    except WebDriverException as e:
-        print(f"{Back.RED}Error initializing WebDriver: {e}")
+        web_driver = webdriver.Chrome(options=options)
+        return web_driver
+    except WebDriverException as initializing_error:
+        print(f"{Back.RED}Error initializing WebDriver: {initializing_error}")
         exit(1)
 
 
-def scrape_proxies(driver, url):
+def scrape_proxies(web_driver, url):
     """Scrapes proxies from the given URL using the provided driver."""
-    driver.get(url)
-    return get_unvalidated_proxies(driver)
+    web_driver.get(url)
+    return get_unvalidated_proxies(web_driver)
 
 
 if __name__ == "__main__":
