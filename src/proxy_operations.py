@@ -45,7 +45,7 @@ def get_unvalidated_proxies(driver):
 
 
 def proxy_validation_worker(q, valid_proxies, lock, progress_queue):
-    VALIDATION_URL = "https://ipinfo.io/json"
+    validation_url = "https://ipinfo.io/json"
     while True:
         proxy = q.get()
         if proxy is None:  # Sentinel value check
@@ -53,7 +53,7 @@ def proxy_validation_worker(q, valid_proxies, lock, progress_queue):
             break
 
         try:
-            res = requests.get(VALIDATION_URL, proxies={"http": proxy, "https": proxy})
+            res = requests.get(validation_url, proxies={"http": proxy, "https": proxy})
             if res.status_code == 200:
                 with lock:
                     valid_proxies.append(proxy)
