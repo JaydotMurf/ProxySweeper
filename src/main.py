@@ -26,19 +26,25 @@ def scrape_proxies(web_driver, url):
     return get_unvalidated_proxies(web_driver)
 
 
-if __name__ == "__main__":
-    FREE_PROXY_LIST_URL = "https://free-proxy-list.net/"
+def run_proxy_sweeper():
+    free_proxy_list_url = "https://free-proxy-list.net/"
+    proxies_file_path = "proxies.txt"
+    valid_proxies_file_path = "valid_proxies.txt"
 
     # Initialize WebDriver
     driver = init_webdriver()
 
     try:
-        # Fetch proxies and write them to a file
-        proxies = scrape_proxies(driver, FREE_PROXY_LIST_URL)
-        write_proxies_to_file(proxies, "proxies.txt")
-        valid_proxies = validate_proxies("proxies.txt")
-        write_proxies_to_file(valid_proxies, "valid_proxies.txt")
+        # Fetch proxies, validate them, and write to files
+        proxies = scrape_proxies(driver, free_proxy_list_url)
+        write_proxies_to_file(proxies, proxies_file_path)
+        valid_proxies = validate_proxies(proxies_file_path)
+        write_proxies_to_file(valid_proxies, valid_proxies_file_path)
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
         driver.quit()
+
+
+if __name__ == "__main__":
+    run_proxy_sweeper()
